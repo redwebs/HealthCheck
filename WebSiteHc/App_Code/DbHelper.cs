@@ -9,7 +9,7 @@ using log4net;
 /// StoredProcedure helpers
 /// </summary>
 /// 
-public static class Database
+public static class DbHelper
 {
     private static readonly ILog Log = LogManager.GetLogger("Healthchk");
 

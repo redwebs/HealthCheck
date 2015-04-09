@@ -9,10 +9,11 @@ using System.Text;
 using System.Web;
 using Newtonsoft.Json;
 using WebForm.CsLib;
+using NLog;
 
 namespace WebForm
 {
-    public partial class HealthCheck : System.Web.UI.Page
+    public partial class HealthCheck : BasePage
     {
         #region variables
 
@@ -20,8 +21,7 @@ namespace WebForm
         protected bool ItemFailed = false;
         protected bool OddRow = true;
         protected HealthCheckQueryString ReqQueryStr;
-//        protected static readonly ILog Log = LogManager.GetLogger("Healthchk");
-
+        
         #endregion
 
         #region constants
@@ -35,10 +35,9 @@ namespace WebForm
         // Name of the web site
         protected const string WebSiteName = "Mighty Site";
 
-        // The key names of the connection strings
-        protected const string Db1ConStrKey = "DB1";
-        protected const string Db2ConStrKey = "DB2";
-        protected const string Db3ConStrKey = "DB3";
+    // The key names of the connection strings
+    protected const string Db1ConStrKey = "DB1";
+    protected const string Db2ConStrKey = "DB2";
 
         #endregion
 
@@ -55,14 +54,15 @@ namespace WebForm
             {
                 var result = RegularCheck();
 
-                if (ItemFailed)
-                {
-                    Response.StatusCode = (int) HttpStatusCode.InternalServerError;
-                    Response.ContentType = "text/plain";
-                }
-                Response.Write(result);
-                Response.End();
+            if (ItemFailed)
+            {
+                Response.StatusCode = (int) HttpStatusCode.InternalServerError;
+                Response.ContentType = "text/plain";
             }
+            Log.Fatal(String.Format("Regular Database check failed: {0}", result));
+            Response.Write(result);
+            Response.End();
+        }
 
             // Get Query String into an object
 
@@ -91,7 +91,7 @@ namespace WebForm
             var msg =
                 String.Format("Healthcheck failed to determine the appropriate action to take for Query String: {0}",
                     HttpUtility.UrlDecode(Request.QueryString.ToString()));
-            //LogError(msg);
+            Log.Fatal(msg);
             Response.StatusCode = (int) HttpStatusCode.InternalServerError;
             Response.ContentType = "text/plain";
             Response.Write(msg);
@@ -161,7 +161,7 @@ namespace WebForm
                 //  that we have been sent to a login page
                 Sb.Append(HtmlTableRow(false, "SSO Health Check", "Redirected to login"));
                 ItemFailed = true;
-                //LogDebug("Healthcheck SSO was redirected to login.");
+                Log.Debug("Healthcheck SSO was redirected to login.");
             }
             else
             {
@@ -311,7 +311,7 @@ namespace WebForm
                 {
                     status += String.Format("GetAsync Inner Exception: {0}", ex.InnerException.Message);
                 }
-                //LogDebugFormat("Healthcheck.ServiceHealthCheck status: {0}, URL: {1}", status, url);
+                Log.Debug(String.Format("Healthcheck.ServiceHealthCheck status: {0}, URL: {1}", status, url));
             }
             return false;
         }
@@ -358,7 +358,7 @@ namespace WebForm
                         returnStr += " Inner Exception: " + ex.InnerException.Message;
                     }
                 }
-                //LogDebugFormat("Healthcheck.ServiceHealthCheckEx status: {0}, URL: {1}", returnStr, url);
+                Log.Debug(String.Format("Healthcheck.ServiceHealthCheckEx status: {0}, URL: {1}", returnStr, url));
                 return returnStr;
             }
         }
@@ -374,12 +374,12 @@ namespace WebForm
             var db1Status = CheckDbConnection("DB1");
             var db2Status = CheckDbConnection("DB2");
 
-            if (db1Status != string.Empty && db2Status != string.Empty)
-            {
-                return String.Format("{0}<hr />{1}", db1Status, db2Status);
-            }
-            return "OK";
+        if (db1Status != string.Empty || db2Status != string.Empty)
+        {
+            return String.Format("{0}{1}", db1Status, db2Status);
         }
+        return "OK";
+    }
 
         protected string CheckDbConnection(string connStrKey)
         {
@@ -393,21 +393,21 @@ namespace WebForm
             // If it's going to time out, we don't want to wait the standard 30 seconds.
             connString += "; Connection Timeout=5";
 
-            using (var conn = new SqlConnection(connString))
+        using (var conn = new SqlConnection(connString))
+        {
+            try
             {
-                try
-                {
-                    conn.Open();
-                }
-                catch (SqlException sqlE)
-                {
-                    ItemFailed = true;
-                    return String.Format("Connection Key {0}, Sql Connection Error: {1} <br />", connStrKey,
-                        sqlE.Message);
-                }
+                conn.Open();
             }
-            return string.Empty;
+            catch (SqlException sqlE)
+            {
+                ItemFailed = true;
+                return String.Format("Connection Key {0}, Sql Connection Error: {1} ", connStrKey,
+                    sqlE.Message);
+            }
         }
+        return string.Empty;
+    }
 
         protected void CheckDbStoredProc()
         {
@@ -472,19 +472,18 @@ namespace WebForm
 
         #region Version
 
-        public void GetVersionInfo()
-        {
-            Sb.Append("<B>Version Info: </B><BR />");
-            Sb.Append(GetGlobalResourceObject("About", "Major"));
-            Sb.Append(".");
-            Sb.Append(GetGlobalResourceObject("About", "Minor"));
-            Sb.Append(".");
-            Sb.Append(GetGlobalResourceObject("About", "Build"));
-            Sb.Append(".");
-            Sb.Append(GetGlobalResourceObject("About", "Increment"));
-            Sb.Append(".<BR />");
-            Sb.Append(DateTime.Now);
-        }
+    public void GetVersionInfo()
+    {
+        Sb.Append("Version Info: ");
+        Sb.Append(GetGlobalResourceObject("About", "Major"));
+        Sb.Append(".");
+        Sb.Append(GetGlobalResourceObject("About", "Minor"));
+        Sb.Append(".");
+        Sb.Append(GetGlobalResourceObject("About", "Build"));
+        Sb.Append(".");
+        Sb.Append(GetGlobalResourceObject("About", "Increment"));
+        Sb.Append(DateTime.Now);
+    }
 
         public void GetVersionInfoWebSite()
         {

@@ -57,6 +57,7 @@ public partial class Healthcheck : System.Web.UI.Page
                 Response.StatusCode = (int) HttpStatusCode.InternalServerError;
                 Response.ContentType = "text/plain";
             }
+            Log.FatalFormat("Regular Database check failed: {0}", result);
             Response.Write(result);
             Response.End();
         }
@@ -369,9 +370,9 @@ public partial class Healthcheck : System.Web.UI.Page
         var db1Status = CheckDbConnection("DB1");
         var db2Status = CheckDbConnection("DB2");
 
-        if (db1Status != string.Empty && db2Status != string.Empty)
+        if (db1Status != string.Empty || db2Status != string.Empty)
         {
-            return String.Format("{0}<hr />{1}", db1Status, db2Status);
+            return String.Format("{0}{1}", db1Status, db2Status);
         }
         return "OK";
     }
@@ -397,7 +398,7 @@ public partial class Healthcheck : System.Web.UI.Page
             catch (SqlException sqlE)
             {
                 ItemFailed = true;
-                return String.Format("Connection Key {0}, Sql Connection Error: {1} <br />", connStrKey,
+                return String.Format("Connection Key {0}, Sql Connection Error: {1} ", connStrKey,
                     sqlE.Message);
             }
         }
@@ -406,7 +407,7 @@ public partial class Healthcheck : System.Web.UI.Page
 
     protected void CheckDbStoredProc()
     {
-        var spResult = Database.SqlStoredProcedureAccessCheck(Helper.GetConnString(Db1ConStrKey), "GetSubjectBedTime", "@uid", 1);
+        var spResult = DbHelper.SqlStoredProcedureAccessCheck(Helper.GetConnString(Db1ConStrKey), "GetSubjectBedTime", "@uid", 1);
 
         if (spResult.Item2)
         {
@@ -418,7 +419,7 @@ public partial class Healthcheck : System.Web.UI.Page
             ItemFailed = true;
         }
 
-        spResult = Database.SqlStoredProcedureAccessCheck(Helper.GetConnString(Db2ConStrKey), "uspWorkoutCategory",
+        spResult = DbHelper.SqlStoredProcedureAccessCheck(Helper.GetConnString(Db2ConStrKey), "uspWorkoutCategory",
                 "@workoutCategoryId", 2);
 
         if (spResult.Item2)
@@ -431,7 +432,7 @@ public partial class Healthcheck : System.Web.UI.Page
             ItemFailed = true;
         }
 
-        var textSrchInstalled = Database.GetServerProperty(Helper.GetConnString(Db2ConStrKey), "IsFullTextInstalled");
+        var textSrchInstalled = DbHelper.GetServerProperty(Helper.GetConnString(Db2ConStrKey), "IsFullTextInstalled");
 
         if (textSrchInstalled == 1)
         {
@@ -443,7 +444,7 @@ public partial class Healthcheck : System.Web.UI.Page
             ItemFailed = true;
         }
 
-        var dataTable = Database.GetDataTableConStrKey(Db1ConStrKey, "SELECT GETDATE() fn_GetDate, SYSDATETIME() fn_SysDateTime");
+        var dataTable = DbHelper.GetDataTableConStrKey(Db1ConStrKey, "SELECT GETDATE() fn_GetDate, SYSDATETIME() fn_SysDateTime");
         DataRow dataRow = null;
 
         if (dataTable.TableName.Equals("MyData"))
@@ -467,7 +468,7 @@ public partial class Healthcheck : System.Web.UI.Page
 
     public void GetVersionInfo()
     {
-        Sb.Append("<B>Version Info: </B><BR />");
+        Sb.Append("Version Info: ");
         Sb.Append(GetGlobalResourceObject("About", "Major"));
         Sb.Append(".");
         Sb.Append(GetGlobalResourceObject("About", "Minor"));
@@ -475,7 +476,6 @@ public partial class Healthcheck : System.Web.UI.Page
         Sb.Append(GetGlobalResourceObject("About", "Build"));
         Sb.Append(".");
         Sb.Append(GetGlobalResourceObject("About", "Increment"));
-        Sb.Append(".<BR />");
         Sb.Append(DateTime.Now);
     }
 
@@ -592,7 +592,7 @@ public partial class Healthcheck : System.Web.UI.Page
 
     public int GetEmailQueue()
     {
-        var dt = Database.GetDataTableConStrKey(Db1ConStrKey,"Select count(*) 'Queued' from EmailQueue where nextProcessingTime < getdate() ");
+        var dt = DbHelper.GetDataTableConStrKey(Db1ConStrKey,"Select count(*) 'Queued' from EmailQueue where nextProcessingTime < getdate() ");
  
         if (dt.Rows.Count != 0)
         {
@@ -603,7 +603,7 @@ public partial class Healthcheck : System.Web.UI.Page
 
     public int GetTotalInEmailQueue() 
     {
-        var dt = Database.GetDataTableConStrKey(Db1ConStrKey, "select count(*) 'Stored' from EmailQueue;");
+        var dt = DbHelper.GetDataTableConStrKey(Db1ConStrKey, "select count(*) 'Stored' from EmailQueue;");
 
         if (dt.Rows.Count != 0)
         {
