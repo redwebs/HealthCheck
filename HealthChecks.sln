@@ -27,6 +27,8 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "WebSiteHc", "http://localho
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebForm", "WebForm\WebForm.csproj", "{DF35AFD1-4128-4385-9266-B1386EAF2BCA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebMvc", "WebMvc\WebMvc.csproj", "{882B1B66-9A44-4C1D-B821-B81D6356D241}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{DF35AFD1-4128-4385-9266-B1386EAF2BCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF35AFD1-4128-4385-9266-B1386EAF2BCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF35AFD1-4128-4385-9266-B1386EAF2BCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{882B1B66-9A44-4C1D-B821-B81D6356D241}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{882B1B66-9A44-4C1D-B821-B81D6356D241}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{882B1B66-9A44-4C1D-B821-B81D6356D241}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{882B1B66-9A44-4C1D-B821-B81D6356D241}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

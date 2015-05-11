@@ -1,0 +1,23 @@
+﻿@model IEnumerable<WebMvc.Models.HealthCheckSection>
+
+@{
+    ViewBag.Title = "Health Check";
+}
+<table cols="2">
+    <thead><tr class="odd"><th colspan="2" scope="col"><h3>Health Check - @ViewBag.Url</h3></th></tr></thead>
+
+</table>
+    @foreach (var section in Model)
+    {
+    <table cols="2">
+        <thead><tr class="odd"><th colspan="2" scope="col"><h3>@Html.DisplayFor(modelItem => section.Title)</h3></th></tr></thead>
+
+        @foreach (var item in section.Entries)
+        {
+            <tr class="@Html.DisplayFor(hcItem => item.CssClass)">
+                <td>@Html.DisplayFor(hcItem => item.ItemName)</td>
+                <td>@Html.DisplayFor(hcItem => item.ResultDescription)</td>
+            </tr>
+        }
+    </table>
+    }
