@@ -25,9 +25,7 @@ namespace WebMvc.HC
 
             var chkMsg = CheckDatabases();
 
-            // System Version
-
-            if (chkMsg != "OK")
+            if (chkMsg != String.Empty)
             {
                 Log.FatalFormat("Regular Database check failed: {0}", chkMsg);
                 return false;
